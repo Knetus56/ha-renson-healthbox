@@ -19,6 +19,7 @@ Réécriture complète de [rmassch/healthbox-hacs](https://github.com/rmassch/he
 - 🔑 **Clé API optionnelle** : fonctionne en mode basique sans clé (capteurs globaux uniquement) ou en mode avancé avec clé (capteurs par pièce)
 - ⚙️ **Modifiable après coup** : changez la clé API ou l'intervalle de scan sans recréer l'intégration
 - 🩺 **Diagnostics intégrés** et **logs de debug** détaillés pour faciliter le signalement de bugs
+- 🇫🇷 **Interface localisée** : français et anglais (l'écran de configuration s'affiche dans la langue de Home Assistant)
 
 ## 📋 Capteurs (Sensors)
 
@@ -142,21 +143,10 @@ Merci de joindre à toute issue :
 
 Puis ouvrir une issue sur [Knetus56/ha-renson-healthbox/issues](https://github.com/Knetus56/ha-renson-healthbox/issues).
 
-## ⚠️ Changement cassant par rapport à `rmassch/healthbox-hacs`
-
-Les entity_id par pièce sont désormais préfixés par le nom du device (évite les collisions avec d'autres intégrations) :
-
-| Avant | Après |
-|---|---|
-| `sensor.cuisine_temperature` | `sensor.healthbox_cuisine_temperature` |
-| `binary_sensor.sdb_boost_status` | `switch.healthbox_sdb_boost` |
-| `sensor.cuisine_profile` | `select.healthbox_cuisine_profile` |
-
-Pensez à mettre à jour vos automatisations, scripts et tableaux de bord après la migration.
-
 ## 📦 Versions
 
-- **1.0.0** (2026-09-06) - Réécriture complète : flow d'options qui valide réellement la clé API, services qui survivent au déchargement d'une autre Healthbox, capteurs résilients à une valeur manquante, `select` pour le profil, `switch` + `number` pour le boost, `diagnostics.py`, logs de debug détaillés, icône de marque embarquée, entity_id namespacés, unités à jour (`UnitOfRatio`).
+- **1.1.0** (2026-09-06) - `select` pour le profil de pièce, `switch` + `number` pour piloter le boost (niveau/durée réglables, persistés entre redémarrages), logs de debug détaillés, capteurs arrondis à l'entier (température gardée à 1 décimale), traduction française.
+- **1.0.0** (2026-09-06) - Réécriture complète : flow d'options qui valide réellement la clé API, services qui survivent au déchargement d'une autre Healthbox, capteurs résilients à une valeur manquante, `diagnostics.py`, icône de marque embarquée, entity_id namespacés, unités à jour (`UnitOfRatio`).
 
 ## 🙏 Remerciements
 
