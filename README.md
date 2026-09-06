@@ -143,18 +143,6 @@ Merci de joindre à toute issue :
 
 Puis ouvrir une issue sur [Knetus56/ha-renson-healthbox/issues](https://github.com/Knetus56/ha-renson-healthbox/issues).
 
-## ⚠️ Changement cassant par rapport à `rmassch/healthbox-hacs`
-
-Les entity_id par pièce sont désormais préfixés par le nom du device (évite les collisions avec d'autres intégrations) :
-
-| Avant | Après |
-|---|---|
-| `sensor.cuisine_temperature` | `sensor.healthbox_cuisine_temperature` |
-| `binary_sensor.sdb_boost_status` | `switch.healthbox_sdb_boost` |
-| `sensor.cuisine_profile` | `select.healthbox_cuisine_profile` |
-
-Pensez à mettre à jour vos automatisations, scripts et tableaux de bord après la migration.
-
 ## 📦 Versions
 
 - **1.0.0** (2026-09-06) - Réécriture complète : flow d'options qui valide réellement la clé API, services qui survivent au déchargement d'une autre Healthbox, capteurs résilients à une valeur manquante, `select` pour le profil, `switch` + `number` pour le boost, `diagnostics.py`, logs de debug détaillés, icône de marque embarquée, entity_id namespacés, unités à jour (`UnitOfRatio`).
