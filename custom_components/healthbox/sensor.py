@@ -69,7 +69,7 @@ def _hub_sensor_descriptions(api: Healthbox3) -> list[HealthboxHubEntityDescript
             name="Global Air Quality Index",
             device_class=SensorDeviceClass.AQI,
             state_class=SensorStateClass.MEASUREMENT,
-            suggested_display_precision=2,
+            suggested_display_precision=0,
             value_fn=lambda x: x.global_aqi,
         ),
         HealthboxHubEntityDescription(
@@ -78,6 +78,7 @@ def _hub_sensor_descriptions(api: Healthbox3) -> list[HealthboxHubEntityDescript
             icon="mdi:alert-outline",
             state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
+            suggested_display_precision=0,
             value_fn=lambda x: x.error_count,
         ),
     ]
@@ -121,7 +122,7 @@ def _hub_sensor_descriptions(api: Healthbox3) -> list[HealthboxHubEntityDescript
                 native_unit_of_measurement=UnitOfElectricPotential.VOLT,
                 device_class=SensorDeviceClass.VOLTAGE,
                 state_class=SensorStateClass.MEASUREMENT,
-                suggested_display_precision=2,
+                suggested_display_precision=0,
                 value_fn=lambda x: x.fan.voltage,
             )
         )
@@ -134,7 +135,7 @@ def _hub_sensor_descriptions(api: Healthbox3) -> list[HealthboxHubEntityDescript
                 native_unit_of_measurement=UnitOfPressure.PA,
                 device_class=SensorDeviceClass.PRESSURE,
                 state_class=SensorStateClass.MEASUREMENT,
-                suggested_display_precision=2,
+                suggested_display_precision=0,
                 value_fn=lambda x: x.fan.pressure,
             )
         )
@@ -147,7 +148,7 @@ def _hub_sensor_descriptions(api: Healthbox3) -> list[HealthboxHubEntityDescript
                 native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
                 device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
                 state_class=SensorStateClass.MEASUREMENT,
-                suggested_display_precision=2,
+                suggested_display_precision=0,
                 value_fn=lambda x: x.fan.flow,
             )
         )
@@ -160,7 +161,7 @@ def _hub_sensor_descriptions(api: Healthbox3) -> list[HealthboxHubEntityDescript
                 native_unit_of_measurement=UnitOfPower.WATT,
                 device_class=SensorDeviceClass.POWER,
                 state_class=SensorStateClass.MEASUREMENT,
-                suggested_display_precision=2,
+                suggested_display_precision=0,
                 value_fn=lambda x: x.fan.power,
             )
         )
@@ -172,6 +173,7 @@ def _hub_sensor_descriptions(api: Healthbox3) -> list[HealthboxHubEntityDescript
                 icon="mdi:fan",
                 native_unit_of_measurement=REVOLUTIONS_PER_MINUTE,
                 state_class=SensorStateClass.MEASUREMENT,
+                suggested_display_precision=0,
                 value_fn=lambda x: x.fan.rpm,
             )
         )
@@ -208,7 +210,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 native_unit_of_measurement=PERCENTAGE,
                 device_class=SensorDeviceClass.HUMIDITY,
                 state_class=SensorStateClass.MEASUREMENT,
-                suggested_display_precision=1,
+                suggested_display_precision=0,
                 value_fn=lambda r: r.indoor_humidity,
             )
         )
@@ -221,6 +223,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 native_unit_of_measurement=_PARTS_PER_MILLION,
                 device_class=SensorDeviceClass.CO2,
                 state_class=SensorStateClass.MEASUREMENT,
+                suggested_display_precision=0,
                 value_fn=lambda r: r.indoor_co2_concentration,
             )
         )
@@ -232,6 +235,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 native_unit_of_measurement=_PARTS_PER_MILLION,
                 device_class=SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS_PARTS,
                 state_class=SensorStateClass.MEASUREMENT,
+                suggested_display_precision=0,
                 value_fn=lambda r: r.indoor_voc_ppm,
             )
         )
@@ -242,7 +246,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 name="Air Quality Index",
                 device_class=SensorDeviceClass.AQI,
                 state_class=SensorStateClass.MEASUREMENT,
-                suggested_display_precision=2,
+                suggested_display_precision=0,
                 value_fn=lambda r: r.indoor_aqi,
             )
         )
@@ -254,7 +258,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 icon="mdi:fan",
                 native_unit_of_measurement=PERCENTAGE,
                 state_class=SensorStateClass.MEASUREMENT,
-                suggested_display_precision=1,
+                suggested_display_precision=0,
                 value_fn=lambda r: (
                     r.airflow_ventilation_rate * 100
                     if r.airflow_ventilation_rate is not None
@@ -275,6 +279,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
             icon="mdi:fan",
             native_unit_of_measurement=PERCENTAGE,
             state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=0,
             value_fn=lambda r: r.boost.level,
         )
     )
@@ -286,6 +291,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
             native_unit_of_measurement=UnitOfTime.SECONDS,
             device_class=SensorDeviceClass.DURATION,
             state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=0,
             value_fn=lambda r: r.boost.remaining,
         )
     )
