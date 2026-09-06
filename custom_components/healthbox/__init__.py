@@ -11,7 +11,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from pyhealthbox3.healthbox3 import Healthbox3
 
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, MANUFACTURER, PLATFORMS
+from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, MANUFACTURER, PLATFORMS
 from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
 from .services import async_setup_services
 
@@ -35,18 +35,27 @@ async def async_setup(hass: HomeAssistant, _config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: HealthboxConfigEntry) -> bool:
     """Set up Renson Healthbox from a config entry."""
+    host = entry.data[CONF_HOST]
     api_key = entry.data.get(CONF_API_KEY)
+    LOGGER.debug(
+        "Setting up entry %s for Healthbox at %s (api_key %s)",
+        entry.entry_id,
+        host,
+        "set" if api_key else "not set",
+    )
     api = Healthbox3(
-        host=entry.data[CONF_HOST],
+        host=host,
         api_key=api_key,
         session=async_get_clientsession(hass),
     )
     if api_key:
+        LOGGER.debug("Enabling advanced API features for %s", host)
         await api.async_enable_advanced_api_features()
 
     scan_interval_seconds = entry.options.get(
         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL.total_seconds()
     )
+    LOGGER.debug("Polling %s every %s seconds", host, scan_interval_seconds)
     coordinator = HealthboxDataUpdateCoordinator(
         hass=hass,
         config_entry=entry,
@@ -54,6 +63,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: HealthboxConfigEntry) ->
         update_interval=timedelta(seconds=scan_interval_seconds),
     )
     await coordinator.async_config_entry_first_refresh()
+    LOGGER.debug(
+        "First refresh OK for %s: serial=%s firmware=%s advanced_api=%s rooms=%s",
+        host,
+        api.serial,
+        api.firmware_version,
+        api.advanced_api_enabled,
+        [room.name for room in api.rooms],
+    )
 
     # Register the hub device up front (rather than letting the sensor
     # platform's DeviceInfo create it implicitly) so room devices below can
@@ -80,9 +97,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: HealthboxConfigEntry) ->
 
 async def async_unload_entry(hass: HomeAssistant, entry: HealthboxConfigEntry) -> bool:
     """Unload a config entry."""
+    LOGGER.debug("Unloading entry %s", entry.entry_id)
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def _async_reload_entry(hass: HomeAssistant, entry: HealthboxConfigEntry) -> None:
     """Reload a config entry when its options change (e.g. scan_interval)."""
+    LOGGER.debug("Options updated for entry %s, reloading", entry.entry_id)
     await hass.config_entries.async_reload(entry.entry_id)

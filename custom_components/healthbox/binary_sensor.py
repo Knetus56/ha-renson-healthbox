@@ -12,6 +12,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from pyhealthbox3.models import Healthbox3Room
 
+from .const import LOGGER
 from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
 from .entity import HealthboxRoomDescriptionMixin, HealthboxRoomEntity
 
@@ -63,6 +64,11 @@ async def async_setup_entry(
                     )
 
         if new_entities:
+            LOGGER.debug(
+                "Adding %s new Healthbox binary sensor(s): %s",
+                len(new_entities),
+                [e.entity_description.key for e in new_entities],
+            )
             async_add_entities(new_entities)
 
     _add_new_entities()

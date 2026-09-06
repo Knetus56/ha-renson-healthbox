@@ -26,12 +26,14 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyhealthbox3.healthbox3 import Healthbox3
 from pyhealthbox3.models import Healthbox3Room
 
+from .const import LOGGER
 from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
 from .entity import (
     HealthboxHubDescriptionMixin,
     HealthboxHubEntity,
     HealthboxRoomDescriptionMixin,
     HealthboxRoomEntity,
+    room_field,
 )
 
 try:
@@ -177,14 +179,6 @@ def _hub_sensor_descriptions(api: Healthbox3) -> list[HealthboxHubEntityDescript
     return descriptions
 
 
-def _room_field(room: Healthbox3Room, getter) -> object | None:
-    """Read a possibly-raising room property, treating errors as "not yet available"."""
-    try:
-        return getter(room)
-    except (AttributeError, TypeError, KeyError, IndexError):
-        return None
-
-
 def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityDescription]:
     """Build the sensor descriptions currently supported by one room.
 
@@ -194,7 +188,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
     """
     descriptions: list[HealthboxRoomEntityDescription] = []
 
-    if _room_field(room, lambda r: r.indoor_temperature) is not None:
+    if room_field(room, lambda r: r.indoor_temperature) is not None:
         descriptions.append(
             HealthboxRoomEntityDescription(
                 key="temperature",
@@ -206,7 +200,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 value_fn=lambda r: r.indoor_temperature,
             )
         )
-    if _room_field(room, lambda r: r.indoor_humidity) is not None:
+    if room_field(room, lambda r: r.indoor_humidity) is not None:
         descriptions.append(
             HealthboxRoomEntityDescription(
                 key="humidity",
@@ -218,7 +212,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 value_fn=lambda r: r.indoor_humidity,
             )
         )
-    if _room_field(room, lambda r: r.indoor_co2_concentration) is not None:
+    if room_field(room, lambda r: r.indoor_co2_concentration) is not None:
         descriptions.append(
             HealthboxRoomEntityDescription(
                 key="co2_concentration",
@@ -230,7 +224,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 value_fn=lambda r: r.indoor_co2_concentration,
             )
         )
-    if _room_field(room, lambda r: r.indoor_voc_ppm) is not None:
+    if room_field(room, lambda r: r.indoor_voc_ppm) is not None:
         descriptions.append(
             HealthboxRoomEntityDescription(
                 key="volatile_organic_compounds",
@@ -241,7 +235,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 value_fn=lambda r: r.indoor_voc_ppm,
             )
         )
-    if _room_field(room, lambda r: r.indoor_aqi) is not None:
+    if room_field(room, lambda r: r.indoor_aqi) is not None:
         descriptions.append(
             HealthboxRoomEntityDescription(
                 key="air_quality_index",
@@ -252,7 +246,7 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 value_fn=lambda r: r.indoor_aqi,
             )
         )
-    if _room_field(room, lambda r: r.airflow_ventilation_rate) is not None:
+    if room_field(room, lambda r: r.airflow_ventilation_rate) is not None:
         descriptions.append(
             HealthboxRoomEntityDescription(
                 key="airflow_ventilation_rate",
@@ -268,15 +262,8 @@ def _room_sensor_descriptions(room: Healthbox3Room) -> list[HealthboxRoomEntityD
                 ),
             )
         )
-    if _room_field(room, lambda r: r.profile_name) is not None:
-        descriptions.append(
-            HealthboxRoomEntityDescription(
-                key="profile",
-                name="Profile",
-                icon="mdi:account-box",
-                value_fn=lambda r: r.profile_name,
-            )
-        )
+    # Room profile (Eco/Health/Intense) is a select.py entity, not a
+    # read-only sensor - it's both readable and settable.
 
     # room.boost always exists on a Healthbox3Room (the library defaults it
     # rather than leaving it None), so these are always created; individual
@@ -333,6 +320,11 @@ async def async_setup_entry(
                     new_entities.append(HealthboxRoomSensor(coordinator, description, room))
 
         if new_entities:
+            LOGGER.debug(
+                "Adding %s new Healthbox sensor(s): %s",
+                len(new_entities),
+                [e.entity_description.key for e in new_entities],
+            )
             async_add_entities(new_entities)
 
     _add_new_entities()

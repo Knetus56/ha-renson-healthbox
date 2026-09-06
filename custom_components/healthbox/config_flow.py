@@ -59,6 +59,11 @@ class HealthboxConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             host = user_input[CONF_HOST]
             api_key = user_input.get(CONF_API_KEY) or None
+            LOGGER.debug(
+                "Validating user-submitted Healthbox at %s (api_key %s)",
+                host,
+                "provided" if api_key else "not provided",
+            )
             try:
                 await _validate_connection(self.hass, host, api_key)
             except Healthbox3ApiClientAuthenticationError as exception:
@@ -71,6 +76,7 @@ class HealthboxConfigFlow(ConfigFlow, domain=DOMAIN):
                 LOGGER.exception("Unexpected error validating Healthbox: %s", exception)
                 errors["base"] = "unknown"
             else:
+                LOGGER.debug("Healthbox at %s validated OK, creating entry", host)
                 await self.async_set_unique_id(f"{DOMAIN}_{host}")
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
@@ -114,6 +120,11 @@ class HealthboxOptionsFlowHandler(OptionsFlow):
         if user_input is not None:
             api_key = user_input.get(CONF_API_KEY) or None
             scan_interval = user_input[CONF_SCAN_INTERVAL]
+            LOGGER.debug(
+                "Validating updated options for %s (scan_interval=%s)",
+                current_data[CONF_HOST],
+                scan_interval,
+            )
             try:
                 await _validate_connection(self.hass, current_data[CONF_HOST], api_key)
             except Healthbox3ApiClientAuthenticationError as exception:
@@ -126,6 +137,7 @@ class HealthboxOptionsFlowHandler(OptionsFlow):
                 LOGGER.exception("Unexpected error validating Healthbox: %s", exception)
                 errors["base"] = "unknown"
             else:
+                LOGGER.debug("Options for %s validated OK, saving", current_data[CONF_HOST])
                 self.hass.config_entries.async_update_entry(
                     self.config_entry,
                     data={**current_data, CONF_API_KEY: api_key},

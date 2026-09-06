@@ -21,6 +21,7 @@ from .const import (
     ATTR_BOOST_TIMEOUT,
     ATTR_PROFILE_NAME,
     DOMAIN,
+    LOGGER,
     ROOM_PROFILES,
     SERVICE_CHANGE_ROOM_PROFILE,
     SERVICE_START_ROOM_BOOST,
@@ -51,6 +52,7 @@ def _resolve_room(hass: HomeAssistant, device_id: str) -> tuple[HealthboxDataUpd
     """Resolve a target device_id to the coordinator and room_id it belongs to."""
     device = dr.async_get(hass).async_get(device_id)
     if device is None:
+        LOGGER.debug("Service call target %s is not a known device", device_id)
         raise ServiceValidationError(f"Unknown device: {device_id}")
 
     for identifier in device.identifiers:
@@ -60,8 +62,12 @@ def _resolve_room(hass: HomeAssistant, device_id: str) -> tuple[HealthboxDataUpd
         for entry_id in device.config_entries:
             entry = hass.config_entries.async_get_entry(entry_id)
             if entry is not None and entry.domain == DOMAIN and entry.state is ConfigEntryState.LOADED:
+                LOGGER.debug(
+                    "Resolved device %s to entry %s, room %s", device_id, entry_id, room_id
+                )
                 return entry.runtime_data, room_id
 
+    LOGGER.debug("Service call target %s (%s) is not a Healthbox room", device_id, device.name)
     raise ServiceValidationError(f"Device {device_id} is not a Healthbox room")
 
 
@@ -88,6 +94,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         )
 
     if hass.services.has_service(DOMAIN, SERVICE_START_ROOM_BOOST):
+        LOGGER.debug("Healthbox services already registered, skipping")
         return
 
     hass.services.async_register(
@@ -99,3 +106,4 @@ def async_setup_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN, SERVICE_CHANGE_ROOM_PROFILE, change_room_profile, _CHANGE_ROOM_PROFILE_SCHEMA
     )
+    LOGGER.debug("Registered Healthbox services")

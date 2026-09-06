@@ -13,7 +13,7 @@ NAME = "Renson Healthbox"
 MANUFACTURER = "Renson"
 MODEL_ROOM = "Healthbox Room"
 
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT]
 
 # Config entry keys.
 # CONF_HOST / CONF_API_KEY live in entry.data (connection identity).

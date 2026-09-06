@@ -76,6 +76,7 @@ will change on first install, e.g.:
 |--------------------------------|-------------------------------------------|
 | `sensor.cuisine_temperature`   | `sensor.healthbox_cuisine_temperature`    |
 | `binary_sensor.sdb_boost_status` | `binary_sensor.healthbox_sdb_boost_status` |
+| `sensor.cuisine_profile`      | `select.healthbox_cuisine_profile`        |
 
 Update any automations, scripts, or dashboards that reference the old
 entity IDs after migrating.
@@ -106,13 +107,41 @@ Settings → Devices & Services → Add Integration → **Renson Healthbox**.
 The poll interval and the API key can be changed later from the
 integration's **Configure** button.
 
+## Room profile
+
+Each room's ventilation profile (Eco/Health/Intense) is a `select` entity
+(`select.healthbox_<room>_profile`) — it shows the current profile and lets
+you change it directly, no service call needed.
+
 ## Services
 
 - `healthbox.start_room_boost` — boost a room's fan (level %, duration).
 - `healthbox.stop_room_boost` — stop boosting a room's fan.
-- `healthbox.change_room_profile` — set a room's profile (Eco/Health/Intense).
+- `healthbox.change_room_profile` — set a room's profile; equivalent to the
+  select above, kept for automations/scripts that prefer calling a service.
 
 All three target a **Healthbox Room** device.
+
+## Reporting a bug
+
+Please include both of these with any issue:
+
+1. **Debug logs.** Settings → Devices & Services → Renson Healthbox → the
+   device's ⋯ menu → **Enable debug logging** (this also enables
+   `pyhealthbox3`'s own logs). Reproduce the problem, then **Disable debug
+   logging** from the same menu to download the log file. Equivalently, in
+   `configuration.yaml`:
+   ```yaml
+   logger:
+     logs:
+       custom_components.healthbox: debug
+       pyhealthbox3: debug
+   ```
+2. **Diagnostics.** Settings → Devices & Services → Renson Healthbox → ⋯ →
+   **Download diagnostics** (the API key is redacted automatically).
+
+Then open an issue at
+[Knetus56/ha-renson-healthbox/issues](https://github.com/Knetus56/ha-renson-healthbox/issues).
 
 ## Known limitations
 

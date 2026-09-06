@@ -43,6 +43,20 @@ class HealthboxRoomDescriptionMixin:
     value_fn: Callable[[Healthbox3Room], Any]
 
 
+def room_field(room: Healthbox3Room, getter: Callable[[Healthbox3Room], Any]) -> Any:
+    """Read a possibly-raising room property, treating errors as "not yet available".
+
+    Shared by sensor.py, binary_sensor.py and select.py's description
+    generators to decide whether a given sensor module is currently
+    present on a room (pyhealthbox3 properties can raise instead of
+    returning None, e.g. a profile name that is briefly missing upstream).
+    """
+    try:
+        return getter(room)
+    except (AttributeError, TypeError, KeyError, IndexError):
+        return None
+
+
 def room_device_identifier(config_entry_id: str, room_id: int) -> tuple[str, str]:
     """Build the device_registry identifier for a room device.
 
