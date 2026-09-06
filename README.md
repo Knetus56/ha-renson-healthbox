@@ -1,77 +1,77 @@
 <p align="center"><img src="icon.png" width="96" alt="Renson logo"></p>
 
-# Renson Healthbox - Intégration Home Assistant
+# Renson Healthbox - Home Assistant Integration
 
 [![Validate](https://github.com/Knetus56/ha-renson-healthbox/actions/workflows/validate.yml/badge.svg)](https://github.com/Knetus56/ha-renson-healthbox/actions/workflows/validate.yml)
 
-Une intégration [Home Assistant](https://www.home-assistant.io/) pour monitorer et piloter votre **Renson Healthbox 3** en local via son API HTTP, sans passer par le cloud Renson.
+A [Home Assistant](https://www.home-assistant.io/) integration to monitor and control your **Renson Healthbox 3** locally over its HTTP API, without going through the Renson cloud.
 
-Réécriture complète de [rmassch/healthbox-hacs](https://github.com/rmassch/healthbox-hacs) (voir [Remerciements](#-remerciements)), corrigeant plusieurs bugs de l'original et modernisant le code selon les standards Home Assistant actuels.
+Complete rewrite of [rmassch/healthbox-hacs](https://github.com/rmassch/healthbox-hacs) (see [Credits](#-credits)), fixing several bugs in the original and modernizing the code to current Home Assistant standards.
 
-## 🌟 Fonctionnalités
+## 🌟 Features
 
-- 📊 **Monitoring temps réel** : qualité d'air, température, humidité, CO2, COV, débit de ventilation, pièce par pièce
-- 🌀 **Contrôle du boost** : un `switch` par pièce pour démarrer/arrêter le boost, avec niveau et durée réglables
-- 🎛️ **Changement de profil** : `select` par pièce (Eco / Health / Intense), modifiable directement depuis le tableau de bord
-- 🏠 **Multi-pièces** : chaque pièce Healthbox devient un device HA à part entière, rattaché au hub
-- 🔍 **Détection automatique des capteurs** : CO2, COV, etc. n'apparaissent que si le module est réellement installé dans la pièce - et sont ajoutés à la volée s'ils apparaissent plus tard
-- 🔐 **Connexion locale** : aucune donnée ne transite par un cloud
-- 🔑 **Clé API obligatoire** : nécessaire dès la configuration pour débloquer les capteurs par pièce (température, humidité, CO2, COV, qualité de l'air, boost, profil) - sans elle, l'intégration n'apporte quasiment rien d'utile
-- ⚙️ **Modifiable après coup** : changez la clé API ou l'intervalle de scan sans recréer l'intégration
-- 🩺 **Diagnostics intégrés** et **logs de debug** détaillés pour faciliter le signalement de bugs
-- 🇫🇷 **Interface localisée** : français et anglais (l'écran de configuration s'affiche dans la langue de Home Assistant)
+- 📊 **Real-time monitoring**: air quality, temperature, humidity, CO2, VOC, ventilation rate, per room
+- 🌀 **Boost control**: a `switch` per room to start/stop the boost, with adjustable level and duration
+- 🎛️ **Profile switching**: `select` per room (Eco / Health / Intense), changeable directly from the dashboard
+- 🏠 **Multi-room**: each Healthbox room becomes its own HA device, linked to the hub
+- 🔍 **Automatic sensor discovery**: CO2, VOC, etc. only show up if the module is actually installed in that room - and are added on the fly if they appear later
+- 🔐 **Local connection**: no data ever goes through a cloud
+- 🔑 **API key required**: needed from setup to unlock per-room sensors (temperature, humidity, CO2, VOC, air quality, boost, profile) - without it the integration provides almost nothing useful
+- ⚙️ **Editable afterwards**: change the API key or the poll interval without recreating the integration
+- 🩺 **Built-in diagnostics** and detailed **debug logs** to make bug reports easier
+- 🇫🇷 **Localized UI**: French and English (the config screen follows Home Assistant's language)
 
-## 📋 Capteurs (Sensors)
+## 📋 Sensors
 
-### Capteurs du hub (Healthbox)
+### Hub sensors (Healthbox)
 
-| Capteur | Description | Unité |
+| Sensor | Description | Unit |
 |---|---|---|
-| `global_air_quality_index` | Qualité d'air globale | - |
-| `error_count` | Nombre d'erreurs signalées par l'appareil | - |
-| `fan_voltage` | Tension du ventilateur | V |
-| `fan_pressure` | Pression du ventilateur | Pa |
-| `fan_flow` | Débit du ventilateur | m³/h |
-| `fan_power` | Puissance du ventilateur | W |
-| `fan_rpm` | Vitesse du ventilateur | tr/min |
-| `wifi_status` *(diagnostic)* | État de la connexion Wi-Fi | - |
-| `wifi_internet_connection` *(diagnostic)* | Accès internet via le Wi-Fi | - |
-| `wifi_ssid` *(diagnostic)* | Nom du réseau Wi-Fi | - |
+| `global_air_quality_index` | Global air quality index | - |
+| `error_count` | Number of errors reported by the device | - |
+| `fan_voltage` | Fan voltage | V |
+| `fan_pressure` | Fan pressure | Pa |
+| `fan_flow` | Fan flow | m³/h |
+| `fan_power` | Fan power | W |
+| `fan_rpm` | Fan speed | RPM |
+| `wifi_status` *(diagnostic)* | Wi-Fi connection status | - |
+| `wifi_internet_connection` *(diagnostic)* | Internet access via Wi-Fi | - |
+| `wifi_ssid` *(diagnostic)* | Wi-Fi network name | - |
 
-### Capteurs par pièce (nécessitent la clé API)
+### Per-room sensors (require the API key)
 
-| Capteur | Description | Unité |
+| Sensor | Description | Unit |
 |---|---|---|
-| `temperature` | Température intérieure | °C |
-| `humidity` | Humidité relative | % |
-| `co2_concentration` | Concentration en CO2 *(si module installé)* | ppm |
-| `volatile_organic_compounds` | Composés organiques volatils *(si module installé)* | ppm |
-| `air_quality_index` | Qualité d'air de la pièce | - |
-| `airflow_ventilation_rate` | Débit de ventilation | % |
-| `boost_level` | Niveau du boost en cours | % |
-| `boost_remaining` | Temps restant du boost en cours | s |
+| `temperature` | Indoor temperature | °C |
+| `humidity` | Relative humidity | % |
+| `co2_concentration` | CO2 concentration *(if the module is installed)* | ppm |
+| `volatile_organic_compounds` | Volatile organic compounds *(if the module is installed)* | ppm |
+| `air_quality_index` | Room air quality | - |
+| `airflow_ventilation_rate` | Ventilation rate | % |
+| `boost_level` | Current boost level | % |
+| `boost_remaining` | Time left on the current boost | s |
 
-## 🔌 Entités de contrôle
+## 🔌 Control entities
 
-| Entité | Domaine | Description |
+| Entity | Domain | Description |
 |---|---|---|
-| `select.healthbox_<pièce>_profile` | `select` | Profil de ventilation : Eco / Health / Intense |
-| `switch.healthbox_<pièce>_boost` | `switch` | Démarre/arrête le boost ; reflète l'état réel de l'appareil (repasse tout seul à `off` à la fin du délai) |
-| `number.healthbox_<pièce>_boost_level` | `number` | Niveau (%) à utiliser au prochain démarrage du boost |
-| `number.healthbox_<pièce>_boost_timeout` | `number` | Durée (minutes) à utiliser au prochain démarrage du boost |
+| `select.healthbox_<room>_profile` | `select` | Ventilation profile: Eco / Health / Intense |
+| `switch.healthbox_<room>_boost` | `switch` | Starts/stops the boost; reflects the device's actual state (flips back to `off` on its own once the delay ends) |
+| `number.healthbox_<room>_boost_level` | `number` | Level (%) to use the next time the boost starts |
+| `number.healthbox_<room>_boost_timeout` | `number` | Duration (minutes) to use the next time the boost starts |
 
 ## 🔄 Services
 
-- `healthbox.start_room_boost` - démarre le boost d'une pièce (niveau %, durée en minutes)
-- `healthbox.stop_room_boost` - arrête le boost d'une pièce
-- `healthbox.change_room_profile` - change le profil d'une pièce (Eco/Health/Intense)
+- `healthbox.start_room_boost` - start a room's boost (level %, duration in minutes)
+- `healthbox.stop_room_boost` - stop a room's boost
+- `healthbox.change_room_profile` - change a room's profile (Eco/Health/Intense)
 
-Les trois ciblent un device **Healthbox Room**. Ils font exactement la même chose que le switch/select ci-dessus - utiles pour les automatisations qui préfèrent appeler un service plutôt que manipuler une entité.
+All three target a **Healthbox Room** device. They do exactly the same thing as the switch/select above - useful for automations that prefer calling a service over manipulating an entity.
 
 ```yaml
 service: healthbox.start_room_boost
 target:
-  device_id: <device_id de la pièce>
+  device_id: <room's device_id>
 data:
   boost_level: 150
   boost_timeout: 30
@@ -79,76 +79,76 @@ data:
 
 ## 🚀 Installation
 
-### Prérequis
+### Requirements
 
 - Home Assistant 2024.8+
-- Accès réseau à la Healthbox
-- Adresse IP de la Healthbox et sa **clé API** (obligatoire - visible dans l'interface web de l'appareil)
+- Network access to the Healthbox
+- The Healthbox's IP address and its **API key** (required - found in the device's own web UI)
 
-### Via HACS (dépôt personnalisé)
+### Via HACS (custom repository)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Knetus56&repository=ha-renson-healthbox&category=integration)
 
-Ou manuellement :
-1. **HACS** > **Intégrations** > menu **⋯** > **Dépôts personnalisés**
-2. Ajouter l'URL `https://github.com/Knetus56/ha-renson-healthbox`, catégorie **Intégration**
-3. Chercher et installer **Renson Healthbox**
-4. Redémarrer Home Assistant
+Or manually:
+1. **HACS** > **Integrations** > **⋮** menu > **Custom repositories**
+2. Add the URL `https://github.com/Knetus56/ha-renson-healthbox`, category **Integration**
+3. Search for and install **Renson Healthbox**
+4. Restart Home Assistant
 
-*(Pas encore soumis au store officiel HACS.)*
+*(Submitted to the official HACS store - [PR pending review](https://github.com/hacs/default/pull/10693).)*
 
-### Installation manuelle
+### Manual installation
 
-1. Copier `custom_components/healthbox` dans le dossier `custom_components` de votre configuration Home Assistant
-2. Redémarrer Home Assistant
+1. Copy `custom_components/healthbox` into your Home Assistant configuration's `custom_components` folder
+2. Restart Home Assistant
 
 ## ⚙️ Configuration
 
-### Ajout initial
+### Initial setup
 
-1. **Paramètres** > **Appareils et services** > **Ajouter une intégration**
-2. Chercher **Renson Healthbox**
-3. Renseigner :
-   - **Adresse IP** : obligatoire
-   - **Clé API** : **obligatoire** - sans elle, l'intégration ne donne accès qu'à une poignée de capteurs globaux ; elle débloque les capteurs par pièce (température, humidité, CO2, COV, qualité d'air, boost, profil)
+1. **Settings** > **Devices & services** > **Add integration**
+2. Search for **Renson Healthbox**
+3. Fill in:
+   - **IP address**: required
+   - **API key**: **required** - without it the integration only exposes a handful of global sensors; it unlocks the per-room sensors (temperature, humidity, CO2, VOC, air quality, boost, profile)
 
-### Modifier la configuration après installation
+### Changing the configuration after installation
 
-1. **Paramètres** > **Appareils et services** > carte **Renson Healthbox** > **Configurer**
-2. Mettre à jour la **clé API** et/ou l'**intervalle de scan**
-3. Valider - l'intégration se recharge automatiquement
+1. **Settings** > **Devices & services** > **Renson Healthbox** card > **Configure**
+2. Update the **API key** and/or the **poll interval**
+3. Submit - the integration reloads automatically
 
-## 🔧 Configuration avancée
+## 🔧 Advanced configuration
 
-### Intervalle de scan
+### Poll interval
 
-Par défaut, l'intégration interroge la Healthbox toutes les **30 secondes**. Réglable de 10 à 3600 secondes depuis l'écran **Configurer**.
+By default, the integration polls the Healthbox every **30 seconds**. Adjustable from 10 to 3600 seconds from the **Configure** screen.
 
-### Capteurs qui n'apparaissent pas
+### Sensors that don't show up
 
-Les capteurs par pièce dépendent des modules physiquement installés (ex. une pièce peut avoir un capteur CO2, une autre un capteur COV, une troisième ni l'un ni l'autre) et de la présence de la clé API. Un capteur qui devient disponible plus tard (clé API ajoutée, module détecté) est ajouté automatiquement au prochain cycle de scan, sans redémarrage ni reconfiguration.
+Per-room sensors depend on which modules are physically installed (e.g. one room may have a CO2 sensor, another a VOC sensor, a third neither) and on the API key being set. A sensor that becomes available later (API key added, module detected) is added automatically on the next poll cycle, with no restart or reconfiguration needed.
 
-## 🐛 Signaler un bug
+## 🐛 Reporting a bug
 
-Merci de joindre à toute issue :
+Please include both of these with any issue:
 
-1. **Les logs de debug** : **Paramètres** > **Appareils et services** > **Renson Healthbox** > menu **⋯** de l'appareil > **Activer la consignation du débogage**. Reproduire le problème, puis **Désactiver la consignation du débogage** depuis le même menu pour télécharger le fichier. Équivalent en YAML :
+1. **Debug logs**: **Settings** > **Devices & services** > **Renson Healthbox** > the device's **⋯** menu > **Enable debug logging**. Reproduce the problem, then **Disable debug logging** from the same menu to download the log file. YAML equivalent:
    ```yaml
    logger:
      logs:
        custom_components.healthbox: debug
        pyhealthbox3: debug
    ```
-2. **Les diagnostics** : **Paramètres** > **Appareils et services** > **Renson Healthbox** > **⋯** > **Télécharger les diagnostics** (la clé API est automatiquement masquée).
+2. **Diagnostics**: **Settings** > **Devices & services** > **Renson Healthbox** > **⋯** > **Download diagnostics** (the API key is automatically redacted).
 
-Puis ouvrir une issue sur [Knetus56/ha-renson-healthbox/issues](https://github.com/Knetus56/ha-renson-healthbox/issues).
+Then open an issue at [Knetus56/ha-renson-healthbox/issues](https://github.com/Knetus56/ha-renson-healthbox/issues).
 
 ## 📦 Versions
 
-- **1.1.1** (2026-09-06) - Nettoyage interne : découverte dynamique d'entités factorisée (un seul helper partagé au lieu de 4 copies), arrondi correct (`round()` au lieu d'un tronquage silencieux) sur le niveau/durée du boost, lookup de pièce en O(1), couverture de test ajoutée pour la disponibilité des entités de contrôle.
-- **1.1.0** (2026-09-06) - `select` pour le profil de pièce, `switch` + `number` pour piloter le boost (niveau/durée réglables, persistés entre redémarrages), logs de debug détaillés, capteurs arrondis à l'entier (température gardée à 1 décimale), traduction française.
+- **1.1.1** (2026-09-06) - Internal cleanup: dynamic entity discovery factored into a single shared helper (instead of 4 copies), correct rounding (`round()` instead of a silent truncation) on the boost level/duration, O(1) room lookup, test coverage added for control-entity availability.
+- **1.1.0** (2026-09-06) - `select` for the room profile, `switch` + `number` to drive the boost (adjustable level/duration, persisted across restarts), detailed debug logs, sensors rounded to whole numbers (temperature kept at 1 decimal), French translation.
 
-## 🙏 Remerciements
+## 🙏 Credits
 
-- [rmassch](https://github.com/rmassch/healthbox-hacs) pour l'intégration d'origine
-- L'auteur de [pyhealthbox3](https://pypi.org/project/pyhealthbox3/), la librairie cliente utilisée telle quelle par cette intégration
+- [rmassch](https://github.com/rmassch/healthbox-hacs) for the original integration
+- The author of [pyhealthbox3](https://pypi.org/project/pyhealthbox3/), the client library this integration uses as-is
