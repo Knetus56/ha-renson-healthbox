@@ -10,5 +10,5 @@
   "issue_tracker": "https://github.com/Knetus56/ha-renson-healthbox/issues",
   "loggers": ["pyhealthbox3"],
   "requirements": ["pyhealthbox3==0.0.22"],
-  "version": "1.1.0"
+  "version": "1.1.1"
 }
