@@ -145,7 +145,8 @@ Puis ouvrir une issue sur [Knetus56/ha-renson-healthbox/issues](https://github.c
 
 ## 📦 Versions
 
-- **1.0.0** (2026-09-06) - Réécriture complète : flow d'options qui valide réellement la clé API, services qui survivent au déchargement d'une autre Healthbox, capteurs résilients à une valeur manquante, `select` pour le profil, `switch` + `number` pour le boost, `diagnostics.py`, logs de debug détaillés, icône de marque embarquée, entity_id namespacés, unités à jour (`UnitOfRatio`).
+- **1.1.0** (2026-09-06) - `select` pour le profil de pièce, `switch` + `number` pour piloter le boost (niveau/durée réglables, persistés entre redémarrages), logs de debug détaillés, capteurs arrondis à l'entier (température gardée à 1 décimale), traduction française.
+- **1.0.0** (2026-09-06) - Réécriture complète : flow d'options qui valide réellement la clé API, services qui survivent au déchargement d'une autre Healthbox, capteurs résilients à une valeur manquante, `diagnostics.py`, icône de marque embarquée, entity_id namespacés, unités à jour (`UnitOfRatio`).
 
 ## 🙏 Remerciements
 
