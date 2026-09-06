@@ -55,6 +55,11 @@ library as-is, only the Home Assistant integration layer was rewritten.
   HA Core 2027.8).
 - **`diagnostics.py`** added (Settings → Devices & Services → Renson
   Healthbox → ⋯ → Download diagnostics), with the API key redacted.
+- **Bundled brand icon** (`custom_components/healthbox/brand/`) — the
+  domain had never been submitted anywhere, so it showed a generic
+  puzzle-piece icon. Since HA 2026.3 a custom integration can ship its own
+  `icon.png`/`icon@2x.png` and HA serves it directly (no PR to
+  `home-assistant/brands` needed, unlike before that version).
 - Dead data-model code removed from `const.py` (a hand-rolled JSON model
   that duplicated, and had drifted from, what `pyhealthbox3` already
   provides).

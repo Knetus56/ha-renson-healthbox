@@ -19,13 +19,6 @@ jobs:
   hacs:
     name: HACS
     runs-on: ubuntu-latest
-    # continue-on-error: the two checks this currently fails on (repository
-    # topics, brands assets) gate eligibility for the *official* HACS
-    # default store, not whether the repo installs as a HACS custom
-    # repository (which is how this integration is meant to be used today -
-    # see README). Topics are set; brands requires a separate PR to
-    # home-assistant/brands. Kept non-blocking until/unless that's done.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: hacs/action@main
