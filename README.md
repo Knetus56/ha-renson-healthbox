@@ -16,7 +16,7 @@ Réécriture complète de [rmassch/healthbox-hacs](https://github.com/rmassch/he
 - 🏠 **Multi-pièces** : chaque pièce Healthbox devient un device HA à part entière, rattaché au hub
 - 🔍 **Détection automatique des capteurs** : CO2, COV, etc. n'apparaissent que si le module est réellement installé dans la pièce - et sont ajoutés à la volée s'ils apparaissent plus tard
 - 🔐 **Connexion locale** : aucune donnée ne transite par un cloud
-- 🔑 **Clé API optionnelle** : fonctionne en mode basique sans clé (capteurs globaux uniquement) ou en mode avancé avec clé (capteurs par pièce)
+- 🔑 **Clé API obligatoire** : nécessaire dès la configuration pour débloquer les capteurs par pièce (température, humidité, CO2, COV, qualité de l'air, boost, profil) - sans elle, l'intégration n'apporte quasiment rien d'utile
 - ⚙️ **Modifiable après coup** : changez la clé API ou l'intervalle de scan sans recréer l'intégration
 - 🩺 **Diagnostics intégrés** et **logs de debug** détaillés pour faciliter le signalement de bugs
 - 🇫🇷 **Interface localisée** : français et anglais (l'écran de configuration s'affiche dans la langue de Home Assistant)
@@ -83,7 +83,7 @@ data:
 
 - Home Assistant 2024.8+
 - Accès réseau à la Healthbox
-- Adresse IP de la Healthbox (et, pour les capteurs par pièce, sa clé API - visible dans l'interface web de l'appareil)
+- Adresse IP de la Healthbox et sa **clé API** (obligatoire - visible dans l'interface web de l'appareil)
 
 ### Via HACS (dépôt personnalisé)
 
@@ -110,7 +110,7 @@ Ou manuellement :
 2. Chercher **Renson Healthbox**
 3. Renseigner :
    - **Adresse IP** : obligatoire
-   - **Clé API** : optionnelle - sans elle, seuls les capteurs globaux sont disponibles ; avec elle, les capteurs par pièce (température, humidité, CO2, COV, qualité d'air, boost, profil) sont débloqués
+   - **Clé API** : **obligatoire** - sans elle, l'intégration ne donne accès qu'à une poignée de capteurs globaux ; elle débloque les capteurs par pièce (température, humidité, CO2, COV, qualité d'air, boost, profil)
 
 ### Modifier la configuration après installation
 
