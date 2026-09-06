@@ -5,13 +5,19 @@ from datetime import timedelta
 
 from homeassistant.const import CONF_API_KEY, CONF_HOST
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from pyhealthbox3.healthbox3 import Healthbox3
 
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, PLATFORMS
+from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, PLATFORMS
 from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
 from .services import async_setup_services
+
+# This integration is config-entry only (no YAML configuration), which
+# hassfest requires stating explicitly whenever a component defines
+# async_setup - otherwise it assumes YAML config is possible and expects it.
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, _config: dict) -> bool:

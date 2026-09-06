@@ -1,6 +1,6 @@
 <p align="center"><img src="icon.png" width="96" alt="Renson logo"></p>
 
-# Renson Healthbox (`healtbox_ha`)
+# Renson Healthbox (`ha-renson-healthbox`)
 
 Home Assistant custom integration for the Renson Healthbox 3 ventilation
 unit, talking to its local API via [pyhealthbox3](https://pypi.org/project/pyhealthbox3/).
@@ -80,7 +80,7 @@ entity IDs after migrating.
 ### HACS (custom repository)
 
 1. HACS → Integrations → ⋮ → Custom repositories.
-2. Add `https://github.com/Knetus56/healtbox_ha`, category **Integration**.
+2. Add `https://github.com/Knetus56/ha-renson-healthbox`, category **Integration**.
 3. Install "Renson Healthbox", restart Home Assistant.
 
 ### Manual

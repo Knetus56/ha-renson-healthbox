@@ -4,10 +4,10 @@
   "codeowners": ["@Knetus56"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/Knetus56/healtbox_ha",
+  "documentation": "https://github.com/Knetus56/ha-renson-healthbox",
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/Knetus56/healtbox_ha/issues",
+  "issue_tracker": "https://github.com/Knetus56/ha-renson-healthbox/issues",
   "loggers": ["pyhealthbox3"],
   "requirements": ["pyhealthbox3==0.0.22"],
   "version": "1.0.0"

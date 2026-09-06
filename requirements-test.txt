@@ -1,2 +1,3 @@
 pytest-homeassistant-custom-component
 pytest-asyncio
+pyhealthbox3==0.0.22
