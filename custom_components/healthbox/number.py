@@ -140,6 +140,12 @@ class HealthboxRoomBoostNumber(HealthboxRoomEntity, RestoreNumber):
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the value, both locally and in the coordinator's shared settings."""
+        LOGGER.debug(
+            "Room %s: boost %s set to %s",
+            self._room_id,
+            self.entity_description.field,
+            value,
+        )
         self._attr_native_value = value
         self.coordinator.get_boost_settings(self._room_id)[self.entity_description.field] = value
         self.async_write_ha_state()
