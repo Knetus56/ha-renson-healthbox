@@ -1,0 +1,37 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Enter your Healthbox 3's IP address. The API key is optional and only needed to unlock per-room sensors (temperature, humidity, CO2, VOC, air quality).",
+        "data": {
+          "host": "IP address",
+          "api_key": "API key (optional)"
+        }
+      }
+    },
+    "error": {
+      "auth": "The API key was rejected by the Healthbox.",
+      "connection": "Unable to connect to the Healthbox 3 unit.",
+      "unknown": "Unknown error occurred."
+    },
+    "abort": {
+      "already_configured": "This Healthbox is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Update the API key or change how often Home Assistant polls this Healthbox.",
+        "data": {
+          "api_key": "API key (optional)",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "auth": "The API key was rejected by the Healthbox.",
+      "connection": "Unable to connect to the Healthbox 3 unit.",
+      "unknown": "Unknown error occurred."
+    }
+  }
+}

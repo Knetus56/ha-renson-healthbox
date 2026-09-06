@@ -1,0 +1,72 @@
+start_room_boost:
+  name: Start room boost
+  description: Boost the fan in a specific Healthbox room.
+  fields:
+    device_id:
+      name: Room
+      description: The Healthbox room to boost.
+      required: true
+      selector:
+        device:
+          integration: healthbox
+          model: "Healthbox Room"
+    boost_level:
+      name: Level
+      description: The boost percentage.
+      required: true
+      example: 100
+      selector:
+        number:
+          min: 10
+          max: 200
+          step: 5
+          mode: slider
+          unit_of_measurement: "%"
+    boost_timeout:
+      name: Timeout
+      description: Duration of the boost, in minutes.
+      required: true
+      example: 60
+      selector:
+        number:
+          min: 5
+          max: 720
+          step: 1
+          mode: slider
+          unit_of_measurement: minutes
+
+stop_room_boost:
+  name: Stop room boost
+  description: Stop boosting the fan in a specific Healthbox room.
+  fields:
+    device_id:
+      name: Room
+      description: The Healthbox room to stop boosting.
+      required: true
+      selector:
+        device:
+          integration: healthbox
+          model: "Healthbox Room"
+
+change_room_profile:
+  name: Change room profile
+  description: Change a Healthbox room's ventilation profile.
+  fields:
+    device_id:
+      name: Room
+      description: The Healthbox room to change.
+      required: true
+      selector:
+        device:
+          integration: healthbox
+          model: "Healthbox Room"
+    profile_name:
+      name: Profile
+      description: The ventilation profile to apply.
+      required: true
+      selector:
+        select:
+          options:
+            - "Eco"
+            - "Health"
+            - "Intense"
