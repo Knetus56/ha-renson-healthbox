@@ -29,6 +29,9 @@ class HealthboxDataUpdateCoordinator(DataUpdateCoordinator[None]):
     """
 
     config_entry: HealthboxConfigEntry
+    # Set right after the hub device is registered in async_setup_entry -
+    # room entities need it to link to the hub via via_device_id.
+    hub_device_id: str
 
     def __init__(
         self,

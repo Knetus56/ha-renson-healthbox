@@ -6,11 +6,12 @@ from datetime import timedelta
 from homeassistant.const import CONF_API_KEY, CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from pyhealthbox3.healthbox3 import Healthbox3
 
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, PLATFORMS
+from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN, MANUFACTURER, PLATFORMS
 from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
 from .services import async_setup_services
 
@@ -53,6 +54,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: HealthboxConfigEntry) ->
         update_interval=timedelta(seconds=scan_interval_seconds),
     )
     await coordinator.async_config_entry_first_refresh()
+
+    # Register the hub device up front (rather than letting the sensor
+    # platform's DeviceInfo create it implicitly) so room devices below can
+    # link to it via via_device_id, the current (non-deprecated) API - it
+    # needs the hub's actual registry id, which only exists once the device
+    # itself has been created.
+    hub_device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, entry.entry_id)},
+        name=f"Healthbox {api.serial}",
+        manufacturer=MANUFACTURER,
+        model=api.description,
+        hw_version=api.warranty_number,
+        sw_version=api.firmware_version,
+    )
+    coordinator.hub_device_id = hub_device.id
 
     entry.runtime_data = coordinator
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))

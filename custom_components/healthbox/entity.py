@@ -1,10 +1,12 @@
 """Base entities shared by the Healthbox sensor and binary_sensor platforms."""
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -12,6 +14,14 @@ from pyhealthbox3.models import Healthbox3Room
 
 from .const import DOMAIN, MANUFACTURER, MODEL_ROOM, ROOM_IDENTIFIER_SEP
 from .coordinator import HealthboxDataUpdateCoordinator
+
+# via_device_id (an actual device registry id) replaces the older via_device
+# (a domain, identifier tuple HA had to resolve itself) - but older cores'
+# DeviceRegistry.async_get_or_create() raises TypeError on the unknown
+# kwarg rather than ignoring it, so detect support instead of assuming it.
+_SUPPORTS_VIA_DEVICE_ID = "via_device_id" in inspect.signature(
+    dr.DeviceRegistry.async_get_or_create
+).parameters
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -116,12 +126,17 @@ class HealthboxRoomEntity(CoordinatorEntity[HealthboxDataUpdateCoordinator]):
         self._room_id = room.room_id
         entry_id = coordinator.config_entry.entry_id
         self._attr_unique_id = f"{entry_id}_room_{room.room_id}_{description.key}"
+        via = (
+            {"via_device_id": coordinator.hub_device_id}
+            if _SUPPORTS_VIA_DEVICE_ID
+            else {"via_device": (DOMAIN, entry_id)}
+        )
         self._attr_device_info = DeviceInfo(
             identifiers={room_device_identifier(entry_id, room.room_id)},
             name=f"Healthbox {room.name}",
             manufacturer=MANUFACTURER,
             model=MODEL_ROOM,
-            via_device=(DOMAIN, entry_id),
+            **via,
         )
 
     @property
