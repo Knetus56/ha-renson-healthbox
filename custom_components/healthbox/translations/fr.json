@@ -1,0 +1,37 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Entrez l'adresse IP de votre Healthbox 3. La clé API est optionnelle et n'est nécessaire que pour débloquer les capteurs par pièce (température, humidité, CO2, COV, qualité de l'air).",
+        "data": {
+          "host": "Adresse IP",
+          "api_key": "Clé API (optionnelle)"
+        }
+      }
+    },
+    "error": {
+      "auth": "La clé API a été rejetée par la Healthbox.",
+      "connection": "Impossible de se connecter à l'unité Healthbox 3.",
+      "unknown": "Une erreur inconnue est survenue."
+    },
+    "abort": {
+      "already_configured": "Cette Healthbox est déjà configurée."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Mettez à jour la clé API ou changez la fréquence d'interrogation de cette Healthbox par Home Assistant.",
+        "data": {
+          "api_key": "Clé API (optionnelle)",
+          "scan_interval": "Intervalle d'interrogation (secondes)"
+        }
+      }
+    },
+    "error": {
+      "auth": "La clé API a été rejetée par la Healthbox.",
+      "connection": "Impossible de se connecter à l'unité Healthbox 3.",
+      "unknown": "Une erreur inconnue est survenue."
+    }
+  }
+}

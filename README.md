@@ -19,6 +19,7 @@ Réécriture complète de [rmassch/healthbox-hacs](https://github.com/rmassch/he
 - 🔑 **Clé API optionnelle** : fonctionne en mode basique sans clé (capteurs globaux uniquement) ou en mode avancé avec clé (capteurs par pièce)
 - ⚙️ **Modifiable après coup** : changez la clé API ou l'intervalle de scan sans recréer l'intégration
 - 🩺 **Diagnostics intégrés** et **logs de debug** détaillés pour faciliter le signalement de bugs
+- 🇫🇷 **Interface localisée** : français et anglais (l'écran de configuration s'affiche dans la langue de Home Assistant)
 
 ## 📋 Capteurs (Sensors)
 
