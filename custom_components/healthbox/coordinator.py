@@ -14,7 +14,13 @@ from pyhealthbox3.healthbox3 import (
     Healthbox3ApiClientError,
 )
 
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
+from .const import (
+    DEFAULT_BOOST_LEVEL,
+    DEFAULT_BOOST_TIMEOUT,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    LOGGER,
+)
 
 type HealthboxConfigEntry = ConfigEntry[HealthboxDataUpdateCoordinator]
 
@@ -42,12 +48,24 @@ class HealthboxDataUpdateCoordinator(DataUpdateCoordinator[None]):
     ) -> None:
         """Initialize the coordinator."""
         self.api = api
+        # The device has no concept of a "configured but not yet started"
+        # boost - level/timeout only exist once a boost is actually
+        # running. This holds what the boost switch should use *next*,
+        # populated from number.py's RestoreNumber entities as they're
+        # added (and by their defaults on a fresh install).
+        self._boost_settings: dict[int, dict[str, float]] = {}
         super().__init__(
             hass=hass,
             logger=LOGGER,
             config_entry=config_entry,
             name=f"{DOMAIN} - {config_entry.data.get('host')}",
             update_interval=update_interval,
+        )
+
+    def get_boost_settings(self, room_id: int) -> dict[str, float]:
+        """Return the level/timeout to use next time this room's boost starts."""
+        return self._boost_settings.setdefault(
+            room_id, {"level": DEFAULT_BOOST_LEVEL, "timeout": DEFAULT_BOOST_TIMEOUT}
         )
 
     async def change_room_profile(self, room_id: int, profile_name: str) -> None:

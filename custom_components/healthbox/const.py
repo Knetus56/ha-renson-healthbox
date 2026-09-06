@@ -13,7 +13,7 @@ NAME = "Renson Healthbox"
 MANUFACTURER = "Renson"
 MODEL_ROOM = "Healthbox Room"
 
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT]
+PLATFORMS = [Platform.SENSOR, Platform.SELECT, Platform.NUMBER, Platform.SWITCH]
 
 # Config entry keys.
 # CONF_HOST / CONF_API_KEY live in entry.data (connection identity).
@@ -36,6 +36,16 @@ ATTR_BOOST_TIMEOUT = "boost_timeout"
 ATTR_PROFILE_NAME = "profile_name"
 
 ROOM_PROFILES = ["Eco", "Health", "Intense"]
+
+# Boost level (%) and timeout (minutes) ranges, shared between the
+# start_room_boost service schema and the number.py entities that hold the
+# level/timeout to use the next time a room's boost switch is turned on.
+MIN_BOOST_LEVEL = 10
+MAX_BOOST_LEVEL = 200
+DEFAULT_BOOST_LEVEL = 100
+MIN_BOOST_TIMEOUT = 5
+MAX_BOOST_TIMEOUT = 720
+DEFAULT_BOOST_TIMEOUT = 60
 
 # Device identifiers: the hub device is (DOMAIN, entry.entry_id); a room
 # device is (DOMAIN, f"{entry.entry_id}{ROOM_IDENTIFIER_SEP}{room_id}").

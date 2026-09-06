@@ -1,162 +1,164 @@
 <p align="center"><img src="icon.png" width="96" alt="Renson logo"></p>
 
-# Renson Healthbox (`ha-renson-healthbox`)
+# Renson Healthbox - Intégration Home Assistant
 
-Home Assistant custom integration for the Renson Healthbox 3 ventilation
-unit, talking to its local API via [pyhealthbox3](https://pypi.org/project/pyhealthbox3/).
+[![Validate](https://github.com/Knetus56/ha-renson-healthbox/actions/workflows/validate.yml/badge.svg)](https://github.com/Knetus56/ha-renson-healthbox/actions/workflows/validate.yml)
 
-This is a from-scratch rewrite of
-[rmassch/healthbox-hacs](https://github.com/rmassch/healthbox-hacs), whose
-`__init__.py`/`config_flow.py`/`const.py`/`sensor.py`/`binary_sensor.py` were
-audited and found to have several real bugs and drifted from current Home
-Assistant conventions. Thanks to the original author for the integration and
-to pyhealthbox3's maintainer for the API client — this repo keeps using that
-library as-is, only the Home Assistant integration layer was rewritten.
+Une intégration [Home Assistant](https://www.home-assistant.io/) pour monitorer et piloter votre **Renson Healthbox 3** en local via son API HTTP, sans passer par le cloud Renson.
 
-## What changed vs. the original
+Réécriture complète de [rmassch/healthbox-hacs](https://github.com/rmassch/healthbox-hacs) (voir [Remerciements](#-remerciements)), corrigeant plusieurs bugs de l'original et modernisant le code selon les standards Home Assistant actuels.
 
-- **Options flow actually validates the API key.** The original wrote the
-  new key to the config entry *before* validating it, swallowed the auth
-  exception, and always returned success — an invalid key was silently
-  accepted. This rewrite validates first and only saves on success, showing
-  a real error otherwise.
-- **One place stores each setting.** `entry.data` holds connection identity
-  (host, API key); `entry.options` holds behaviour tuning (poll interval).
-  The original wrote to both inconsistently, with `entry.options` never
-  actually read back anywhere.
-- **No more aiohttp session leaks.** Every client uses Home Assistant's
-  shared session (`async_get_clientsession`) instead of creating a
-  throwaway one per config-flow attempt.
-- **Services survive multi-device unload.** `start_room_boost`,
-  `stop_room_boost` and `change_room_profile` are registered once for the
-  integration and resolve their target device to whichever config entry
-  actually owns it — removing one Healthbox no longer deletes the services
-  for every other Healthbox you have configured.
-- **Sensors don't crash on a value that goes missing.** e.g. airflow
-  ventilation rate briefly disappearing used to throw
-  (`None * 100`) inside the sensor's `native_value`; reads are now
-  defensive, and a room device that disappears is marked unavailable
-  instead of raising on every poll.
-- **New sensors can appear without a reload.** Optional per-room sensors
-  (CO2, VOC, temperature/humidity — only present if that room actually has
-  the matching module) and hub diagnostics (Wi-Fi SSID, fan metrics) are
-  (re-)discovered on every poll, not only at startup.
-- **Namespaced entity IDs.** The original named per-room entities directly
-  after the room (`sensor.cuisine_temperature`), which can collide with any
-  other integration's "Cuisine" entity. Devices are now named
-  `Healthbox <room>` / `Healthbox <serial>`, so IDs come out as
-  `sensor.healthbox_cuisine_temperature` — **this is a breaking rename**,
-  see below.
-- **Rooms are linked to their hub** in the device registry (`via_device`),
-  so they show up nested under the Healthbox device instead of floating on
-  their own.
-- **Up to date unit constants.** Uses `UnitOfRatio.PARTS_PER_MILLION`
-  instead of the deprecated `CONCENTRATION_PARTS_PER_MILLION` (removed in
-  HA Core 2027.8).
-- **`diagnostics.py`** added (Settings → Devices & Services → Renson
-  Healthbox → ⋯ → Download diagnostics), with the API key redacted.
-- **Bundled brand icon** (`custom_components/healthbox/brand/`) — the
-  domain had never been submitted anywhere, so it showed a generic
-  puzzle-piece icon. Since HA 2026.3 a custom integration can ship its own
-  `icon.png`/`icon@2x.png` and HA serves it directly (no PR to
-  `home-assistant/brands` needed, unlike before that version).
-- Dead data-model code removed from `const.py` (a hand-rolled JSON model
-  that duplicated, and had drifted from, what `pyhealthbox3` already
-  provides).
-- `strings.json` and `translations/en.json` are kept byte-identical, with
-  CI (`.github/workflows/validate.yml`) failing the build if they ever
-  drift apart again.
+## 🌟 Fonctionnalités
 
-## Breaking change: entity IDs
+- 📊 **Monitoring temps réel** : qualité d'air, température, humidité, CO2, COV, débit de ventilation, pièce par pièce
+- 🌀 **Contrôle du boost** : un `switch` par pièce pour démarrer/arrêter le boost, avec niveau et durée réglables
+- 🎛️ **Changement de profil** : `select` par pièce (Eco / Health / Intense), modifiable directement depuis le tableau de bord
+- 🏠 **Multi-pièces** : chaque pièce Healthbox devient un device HA à part entière, rattaché au hub
+- 🔍 **Détection automatique des capteurs** : CO2, COV, etc. n'apparaissent que si le module est réellement installé dans la pièce - et sont ajoutés à la volée s'ils apparaissent plus tard
+- 🔐 **Connexion locale** : aucune donnée ne transite par un cloud
+- 🔑 **Clé API optionnelle** : fonctionne en mode basique sans clé (capteurs globaux uniquement) ou en mode avancé avec clé (capteurs par pièce)
+- ⚙️ **Modifiable après coup** : changez la clé API ou l'intervalle de scan sans recréer l'intégration
+- 🩺 **Diagnostics intégrés** et **logs de debug** détaillés pour faciliter le signalement de bugs
 
-Because per-room entity IDs are now namespaced under the device name, they
-will change on first install, e.g.:
+## 📋 Capteurs (Sensors)
 
-| Before                        | After                                    |
-|--------------------------------|-------------------------------------------|
-| `sensor.cuisine_temperature`   | `sensor.healthbox_cuisine_temperature`    |
-| `binary_sensor.sdb_boost_status` | `binary_sensor.healthbox_sdb_boost_status` |
-| `sensor.cuisine_profile`      | `select.healthbox_cuisine_profile`        |
+### Capteurs du hub (Healthbox)
 
-Update any automations, scripts, or dashboards that reference the old
-entity IDs after migrating.
+| Capteur | Description | Unité |
+|---|---|---|
+| `global_air_quality_index` | Qualité d'air globale | - |
+| `error_count` | Nombre d'erreurs signalées par l'appareil | - |
+| `fan_voltage` | Tension du ventilateur | V |
+| `fan_pressure` | Pression du ventilateur | Pa |
+| `fan_flow` | Débit du ventilateur | m³/h |
+| `fan_power` | Puissance du ventilateur | W |
+| `fan_rpm` | Vitesse du ventilateur | tr/min |
+| `wifi_status` *(diagnostic)* | État de la connexion Wi-Fi | - |
+| `wifi_internet_connection` *(diagnostic)* | Accès internet via le Wi-Fi | - |
+| `wifi_ssid` *(diagnostic)* | Nom du réseau Wi-Fi | - |
 
-## Installation
+### Capteurs par pièce (nécessitent la clé API)
 
-### HACS (custom repository)
+| Capteur | Description | Unité |
+|---|---|---|
+| `temperature` | Température intérieure | °C |
+| `humidity` | Humidité relative | % |
+| `co2_concentration` | Concentration en CO2 *(si module installé)* | ppm |
+| `volatile_organic_compounds` | Composés organiques volatils *(si module installé)* | ppm |
+| `air_quality_index` | Qualité d'air de la pièce | - |
+| `airflow_ventilation_rate` | Débit de ventilation | % |
+| `boost_level` | Niveau du boost en cours | % |
+| `boost_remaining` | Temps restant du boost en cours | s |
 
-1. HACS → Integrations → ⋮ → Custom repositories.
-2. Add `https://github.com/Knetus56/ha-renson-healthbox`, category **Integration**.
-3. Install "Renson Healthbox", restart Home Assistant.
+## 🔌 Entités de contrôle
 
-### Manual
+| Entité | Domaine | Description |
+|---|---|---|
+| `select.healthbox_<pièce>_profile` | `select` | Profil de ventilation : Eco / Health / Intense |
+| `switch.healthbox_<pièce>_boost` | `switch` | Démarre/arrête le boost ; reflète l'état réel de l'appareil (repasse tout seul à `off` à la fin du délai) |
+| `number.healthbox_<pièce>_boost_level` | `number` | Niveau (%) à utiliser au prochain démarrage du boost |
+| `number.healthbox_<pièce>_boost_timeout` | `number` | Durée (minutes) à utiliser au prochain démarrage du boost |
 
-Copy `custom_components/healthbox` into your Home Assistant's
-`custom_components` directory and restart.
+## 🔄 Services
 
-## Configuration
+- `healthbox.start_room_boost` - démarre le boost d'une pièce (niveau %, durée en minutes)
+- `healthbox.stop_room_boost` - arrête le boost d'une pièce
+- `healthbox.change_room_profile` - change le profil d'une pièce (Eco/Health/Intense)
 
-Settings → Devices & Services → Add Integration → **Renson Healthbox**.
+Les trois ciblent un device **Healthbox Room**. Ils font exactement la même chose que le switch/select ci-dessus - utiles pour les automatisations qui préfèrent appeler un service plutôt que manipuler une entité.
 
-- **IP address**: required.
-- **API key**: optional. Without it you get device-level sensors (fan
-  metrics, Wi-Fi, global air quality, error count). With it (found in the
-  Healthbox's own web UI), per-room sensors (temperature, humidity, CO2,
-  VOC, air quality, boost, profile) are unlocked.
+```yaml
+service: healthbox.start_room_boost
+target:
+  device_id: <device_id de la pièce>
+data:
+  boost_level: 150
+  boost_timeout: 30
+```
 
-The poll interval and the API key can be changed later from the
-integration's **Configure** button.
+## 🚀 Installation
 
-## Room profile
+### Prérequis
 
-Each room's ventilation profile (Eco/Health/Intense) is a `select` entity
-(`select.healthbox_<room>_profile`) — it shows the current profile and lets
-you change it directly, no service call needed.
+- Home Assistant 2024.8+
+- Accès réseau à la Healthbox
+- Adresse IP de la Healthbox (et, pour les capteurs par pièce, sa clé API - visible dans l'interface web de l'appareil)
 
-## Services
+### Via HACS (dépôt personnalisé)
 
-- `healthbox.start_room_boost` — boost a room's fan (level %, duration).
-- `healthbox.stop_room_boost` — stop boosting a room's fan.
-- `healthbox.change_room_profile` — set a room's profile; equivalent to the
-  select above, kept for automations/scripts that prefer calling a service.
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Knetus56&repository=ha-renson-healthbox&category=integration)
 
-All three target a **Healthbox Room** device.
+Ou manuellement :
+1. **HACS** > **Intégrations** > menu **⋯** > **Dépôts personnalisés**
+2. Ajouter l'URL `https://github.com/Knetus56/ha-renson-healthbox`, catégorie **Intégration**
+3. Chercher et installer **Renson Healthbox**
+4. Redémarrer Home Assistant
 
-## Reporting a bug
+*(Pas encore soumis au store officiel HACS.)*
 
-Please include both of these with any issue:
+### Installation manuelle
 
-1. **Debug logs.** Settings → Devices & Services → Renson Healthbox → the
-   device's ⋯ menu → **Enable debug logging** (this also enables
-   `pyhealthbox3`'s own logs). Reproduce the problem, then **Disable debug
-   logging** from the same menu to download the log file. Equivalently, in
-   `configuration.yaml`:
+1. Copier `custom_components/healthbox` dans le dossier `custom_components` de votre configuration Home Assistant
+2. Redémarrer Home Assistant
+
+## ⚙️ Configuration
+
+### Ajout initial
+
+1. **Paramètres** > **Appareils et services** > **Ajouter une intégration**
+2. Chercher **Renson Healthbox**
+3. Renseigner :
+   - **Adresse IP** : obligatoire
+   - **Clé API** : optionnelle - sans elle, seuls les capteurs globaux sont disponibles ; avec elle, les capteurs par pièce (température, humidité, CO2, COV, qualité d'air, boost, profil) sont débloqués
+
+### Modifier la configuration après installation
+
+1. **Paramètres** > **Appareils et services** > carte **Renson Healthbox** > **Configurer**
+2. Mettre à jour la **clé API** et/ou l'**intervalle de scan**
+3. Valider - l'intégration se recharge automatiquement
+
+## 🔧 Configuration avancée
+
+### Intervalle de scan
+
+Par défaut, l'intégration interroge la Healthbox toutes les **30 secondes**. Réglable de 10 à 3600 secondes depuis l'écran **Configurer**.
+
+### Capteurs qui n'apparaissent pas
+
+Les capteurs par pièce dépendent des modules physiquement installés (ex. une pièce peut avoir un capteur CO2, une autre un capteur COV, une troisième ni l'un ni l'autre) et de la présence de la clé API. Un capteur qui devient disponible plus tard (clé API ajoutée, module détecté) est ajouté automatiquement au prochain cycle de scan, sans redémarrage ni reconfiguration.
+
+## 🐛 Signaler un bug
+
+Merci de joindre à toute issue :
+
+1. **Les logs de debug** : **Paramètres** > **Appareils et services** > **Renson Healthbox** > menu **⋯** de l'appareil > **Activer la consignation du débogage**. Reproduire le problème, puis **Désactiver la consignation du débogage** depuis le même menu pour télécharger le fichier. Équivalent en YAML :
    ```yaml
    logger:
      logs:
        custom_components.healthbox: debug
        pyhealthbox3: debug
    ```
-2. **Diagnostics.** Settings → Devices & Services → Renson Healthbox → ⋯ →
-   **Download diagnostics** (the API key is redacted automatically).
+2. **Les diagnostics** : **Paramètres** > **Appareils et services** > **Renson Healthbox** > **⋯** > **Télécharger les diagnostics** (la clé API est automatiquement masquée).
 
-Then open an issue at
-[Knetus56/ha-renson-healthbox/issues](https://github.com/Knetus56/ha-renson-healthbox/issues).
+Puis ouvrir une issue sur [Knetus56/ha-renson-healthbox/issues](https://github.com/Knetus56/ha-renson-healthbox/issues).
 
-## Known limitations
+## ⚠️ Changement cassant par rapport à `rmassch/healthbox-hacs`
 
-- `pyhealthbox3` itself swallows most exceptions from its secondary
-  endpoints (errors, Wi-Fi, fan, per-room boost) and simply leaves the
-  corresponding field `None` on failure — this integration reads defensively
-  around that, but a transient error on those endpoints is invisible in the
-  logs by design of the library, not this integration.
-- `tests/` covers the two concrete bugs this rewrite fixes (options flow
-  validation order, services surviving a multi-entry unload) plus a
-  setup smoke test, using `pytest-homeassistant-custom-component`. Run with
-  `pip install -r requirements-test.txt && pytest`. Coverage is deliberately
-  narrow (the bug fixes, not every code path) — also validated against a
-  live Healthbox 3 through Home Assistant's MCP tools during development.
+Les entity_id par pièce sont désormais préfixés par le nom du device (évite les collisions avec d'autres intégrations) :
 
-## License
+| Avant | Après |
+|---|---|
+| `sensor.cuisine_temperature` | `sensor.healthbox_cuisine_temperature` |
+| `binary_sensor.sdb_boost_status` | `switch.healthbox_sdb_boost` |
+| `sensor.cuisine_profile` | `select.healthbox_cuisine_profile` |
 
-MIT — see [LICENSE](LICENSE).
+Pensez à mettre à jour vos automatisations, scripts et tableaux de bord après la migration.
+
+## 📦 Versions
+
+- **1.0.0** (2026-09-06) - Réécriture complète : flow d'options qui valide réellement la clé API, services qui survivent au déchargement d'une autre Healthbox, capteurs résilients à une valeur manquante, `select` pour le profil, `switch` + `number` pour le boost, `diagnostics.py`, logs de debug détaillés, icône de marque embarquée, entity_id namespacés, unités à jour (`UnitOfRatio`).
+
+## 🙏 Remerciements
+
+- [rmassch](https://github.com/rmassch/healthbox-hacs) pour l'intégration d'origine
+- L'auteur de [pyhealthbox3](https://pypi.org/project/pyhealthbox3/), la librairie cliente utilisée telle quelle par cette intégration

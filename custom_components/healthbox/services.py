@@ -22,6 +22,10 @@ from .const import (
     ATTR_PROFILE_NAME,
     DOMAIN,
     LOGGER,
+    MAX_BOOST_LEVEL,
+    MAX_BOOST_TIMEOUT,
+    MIN_BOOST_LEVEL,
+    MIN_BOOST_TIMEOUT,
     ROOM_PROFILES,
     SERVICE_CHANGE_ROOM_PROFILE,
     SERVICE_START_ROOM_BOOST,
@@ -35,8 +39,12 @@ _DEVICE_ID_SCHEMA = {vol.Required(cv.CONF_DEVICE_ID): cv.string}
 _START_ROOM_BOOST_SCHEMA = vol.Schema(
     {
         **_DEVICE_ID_SCHEMA,
-        vol.Required(ATTR_BOOST_LEVEL): vol.All(int, vol.Range(min=10, max=200)),
-        vol.Required(ATTR_BOOST_TIMEOUT): vol.All(int, vol.Range(min=5, max=720)),
+        vol.Required(ATTR_BOOST_LEVEL): vol.All(
+            int, vol.Range(min=MIN_BOOST_LEVEL, max=MAX_BOOST_LEVEL)
+        ),
+        vol.Required(ATTR_BOOST_TIMEOUT): vol.All(
+            int, vol.Range(min=MIN_BOOST_TIMEOUT, max=MAX_BOOST_TIMEOUT)
+        ),
     }
 )
 _STOP_ROOM_BOOST_SCHEMA = vol.Schema(_DEVICE_ID_SCHEMA)
