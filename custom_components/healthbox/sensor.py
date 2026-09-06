@@ -19,20 +19,21 @@ from homeassistant.const import (
     UnitOfTime,
     UnitOfVolumeFlowRate,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from pyhealthbox3.healthbox3 import Healthbox3
 from pyhealthbox3.models import Healthbox3Room
 
-from .const import LOGGER
 from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
 from .entity import (
     HealthboxHubDescriptionMixin,
     HealthboxHubEntity,
     HealthboxRoomDescriptionMixin,
     HealthboxRoomEntity,
+    async_setup_hub_entities,
+    async_setup_room_entities,
     room_field,
 )
 
@@ -305,36 +306,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Healthbox sensors, and keep adding new ones as they appear."""
-    coordinator = entry.runtime_data
-    known_hub_keys: set[str] = set()
-    known_room_keys: dict[int, set[str]] = {}
-
-    @callback
-    def _add_new_entities() -> None:
-        new_entities: list[SensorEntity] = []
-
-        for description in _hub_sensor_descriptions(coordinator.api):
-            if description.key not in known_hub_keys:
-                known_hub_keys.add(description.key)
-                new_entities.append(HealthboxHubSensor(coordinator, description))
-
-        for room in coordinator.api.rooms:
-            seen = known_room_keys.setdefault(room.room_id, set())
-            for description in _room_sensor_descriptions(room):
-                if description.key not in seen:
-                    seen.add(description.key)
-                    new_entities.append(HealthboxRoomSensor(coordinator, description, room))
-
-        if new_entities:
-            LOGGER.debug(
-                "Adding %s new Healthbox sensor(s): %s",
-                len(new_entities),
-                [e.entity_description.key for e in new_entities],
-            )
-            async_add_entities(new_entities)
-
-    _add_new_entities()
-    entry.async_on_unload(coordinator.async_add_listener(_add_new_entities))
+    async_setup_hub_entities(
+        entry, async_add_entities, _hub_sensor_descriptions, HealthboxHubSensor, "sensor(s)"
+    )
+    async_setup_room_entities(
+        entry, async_add_entities, _room_sensor_descriptions, HealthboxRoomSensor, "sensor(s)"
+    )
 
 
 class HealthboxHubSensor(HealthboxHubEntity, SensorEntity):

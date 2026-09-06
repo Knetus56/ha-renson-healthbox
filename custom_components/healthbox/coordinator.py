@@ -13,6 +13,7 @@ from pyhealthbox3.healthbox3 import (
     Healthbox3ApiClientAuthenticationError,
     Healthbox3ApiClientError,
 )
+from pyhealthbox3.models import Healthbox3Room
 
 from .const import (
     DEFAULT_BOOST_LEVEL,
@@ -54,6 +55,10 @@ class HealthboxDataUpdateCoordinator(DataUpdateCoordinator[None]):
         # populated from number.py's RestoreNumber entities as they're
         # added (and by their defaults on a fresh install).
         self._boost_settings: dict[int, dict[str, float]] = {}
+        # Rebuilt once per successful poll (see _async_update_data) so
+        # entities look a room up by id in O(1) instead of scanning
+        # api.rooms on every state/availability read.
+        self.rooms_by_id: dict[int, Healthbox3Room] = {}
         super().__init__(
             hass=hass,
             logger=LOGGER,
@@ -117,6 +122,7 @@ class HealthboxDataUpdateCoordinator(DataUpdateCoordinator[None]):
                 f"Error communicating with Healthbox at {self.api.host}: {exception}"
             ) from exception
         else:
+            self.rooms_by_id = {room.room_id: room for room in self.api.rooms}
             LOGGER.debug(
                 "Update OK for %s: global_aqi=%s error_count=%s rooms=%s",
                 self.api.host,

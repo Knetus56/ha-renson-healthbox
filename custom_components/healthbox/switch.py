@@ -11,14 +11,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from pyhealthbox3.models import Healthbox3Room
 
-from .const import LOGGER
 from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
-from .entity import HealthboxRoomDescriptionMixin, HealthboxRoomEntity
+from .entity import HealthboxRoomDescriptionMixin, HealthboxRoomEntity, async_setup_room_entities
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -48,30 +47,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Healthbox switches, adding new ones as rooms appear."""
-    coordinator = entry.runtime_data
-    known_room_keys: dict[int, set[str]] = {}
-
-    @callback
-    def _add_new_entities() -> None:
-        new_entities: list[SwitchEntity] = []
-
-        for room in coordinator.api.rooms:
-            seen = known_room_keys.setdefault(room.room_id, set())
-            for description in _room_switch_descriptions(room):
-                if description.key not in seen:
-                    seen.add(description.key)
-                    new_entities.append(HealthboxRoomBoostSwitch(coordinator, description, room))
-
-        if new_entities:
-            LOGGER.debug(
-                "Adding %s new Healthbox switch(es): %s",
-                len(new_entities),
-                [e.entity_description.key for e in new_entities],
-            )
-            async_add_entities(new_entities)
-
-    _add_new_entities()
-    entry.async_on_unload(coordinator.async_add_listener(_add_new_entities))
+    async_setup_room_entities(
+        entry,
+        async_add_entities,
+        _room_switch_descriptions,
+        HealthboxRoomBoostSwitch,
+        "switch(es)",
+    )
 
 
 class HealthboxRoomBoostSwitch(HealthboxRoomEntity, SwitchEntity):
@@ -99,8 +81,8 @@ class HealthboxRoomBoostSwitch(HealthboxRoomEntity, SwitchEntity):
         settings = self.coordinator.get_boost_settings(self._room_id)
         await self.coordinator.start_room_boost(
             room_id=self._room_id,
-            boost_level=int(settings["level"]),
-            boost_timeout=int(settings["timeout"]) * 60,
+            boost_level=round(settings["level"]),
+            boost_timeout=round(settings["timeout"]) * 60,
         )
 
     async def async_turn_off(self, **kwargs) -> None:
