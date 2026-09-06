@@ -6,14 +6,18 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from homeassistant.core import callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityDescription
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from pyhealthbox3.healthbox3 import Healthbox3
 from pyhealthbox3.models import Healthbox3Room
 
-from .const import DOMAIN, MANUFACTURER, MODEL_ROOM, ROOM_IDENTIFIER_SEP
-from .coordinator import HealthboxDataUpdateCoordinator
+from .const import DOMAIN, LOGGER, MANUFACTURER, MODEL_ROOM, ROOM_IDENTIFIER_SEP
+from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
 
 # via_device_id (an actual device registry id) replaces the older via_device
 # (a domain, identifier tuple HA had to resolve itself) - but older cores'
@@ -159,12 +163,10 @@ class HealthboxRoomEntity(CoordinatorEntity[HealthboxDataUpdateCoordinator]):
 
         Rooms are re-fetched (not mutated in place) on every poll, so the
         object from __init__ goes stale; always look the current one up by
-        id instead of caching a reference to it.
+        id (via the coordinator's rooms_by_id, rebuilt once per poll)
+        instead of caching a reference to it.
         """
-        for room in self.coordinator.api.rooms:
-            if room.room_id == self._room_id:
-                return room
-        return None
+        return self.coordinator.rooms_by_id.get(self._room_id)
 
     @property
     def available(self) -> bool:
@@ -189,3 +191,85 @@ class HealthboxRoomEntity(CoordinatorEntity[HealthboxDataUpdateCoordinator]):
                 err,
             )
             return None
+
+
+def async_setup_hub_entities(
+    entry: HealthboxConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+    description_fn: Callable[[Healthbox3], list[EntityDescription]],
+    entity_cls: type[HealthboxHubEntity],
+    label: str,
+) -> None:
+    """Wire up dynamic discovery for a platform's hub-level entities.
+
+    Shared by every platform with hub entities (currently just sensor.py):
+    calls `description_fn(coordinator.api)` on setup and on every
+    coordinator refresh, creating `entity_cls(coordinator, description)`
+    for any key not seen before. Never removes entities for a key that
+    stops appearing - see HealthboxRoomEntity.available for why that's the
+    room-level equivalent's approach too.
+    """
+    coordinator = entry.runtime_data
+    known_keys: set[str] = set()
+
+    @callback
+    def _add_new_entities() -> None:
+        new_entities = []
+        for description in description_fn(coordinator.api):
+            if description.key not in known_keys:
+                known_keys.add(description.key)
+                new_entities.append(entity_cls(coordinator, description))
+
+        if new_entities:
+            LOGGER.debug(
+                "Adding %s new Healthbox %s: %s",
+                len(new_entities),
+                label,
+                [e.entity_description.key for e in new_entities],
+            )
+            async_add_entities(new_entities)
+
+    _add_new_entities()
+    entry.async_on_unload(coordinator.async_add_listener(_add_new_entities))
+
+
+def async_setup_room_entities(
+    entry: HealthboxConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+    description_fn: Callable[[Healthbox3Room], list[EntityDescription]],
+    entity_cls: type[HealthboxRoomEntity],
+    label: str,
+) -> None:
+    """Wire up dynamic discovery for a platform's per-room entities.
+
+    Shared by sensor.py, select.py, switch.py and number.py: calls
+    `description_fn(room)` for every room on setup and on every coordinator
+    refresh, creating `entity_cls(coordinator, description, room)` for any
+    (room, key) pair not seen before. A description_fn that always returns
+    the same fixed list (e.g. number.py's two boost settings) works too -
+    it just means every key is "discovered" the first time its room is.
+    """
+    coordinator = entry.runtime_data
+    known_keys: dict[int, set[str]] = {}
+
+    @callback
+    def _add_new_entities() -> None:
+        new_entities = []
+        for room in coordinator.api.rooms:
+            seen = known_keys.setdefault(room.room_id, set())
+            for description in description_fn(room):
+                if description.key not in seen:
+                    seen.add(description.key)
+                    new_entities.append(entity_cls(coordinator, description, room))
+
+        if new_entities:
+            LOGGER.debug(
+                "Adding %s new Healthbox %s: %s",
+                len(new_entities),
+                label,
+                [e.entity_description.key for e in new_entities],
+            )
+            async_add_entities(new_entities)
+
+    _add_new_entities()
+    entry.async_on_unload(coordinator.async_add_listener(_add_new_entities))

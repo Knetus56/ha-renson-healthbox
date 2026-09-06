@@ -16,7 +16,7 @@ from homeassistant.components.number import (
     RestoreNumber,
 )
 from homeassistant.const import PERCENTAGE, UnitOfTime
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from pyhealthbox3.models import Healthbox3Room
@@ -31,7 +31,7 @@ from .const import (
     MIN_BOOST_TIMEOUT,
 )
 from .coordinator import HealthboxConfigEntry, HealthboxDataUpdateCoordinator
-from .entity import HealthboxRoomEntity
+from .entity import HealthboxRoomEntity, async_setup_room_entities
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -72,39 +72,24 @@ BOOST_TIMEOUT_DESCRIPTION = HealthboxBoostSettingDescription(
 )
 
 
+def _room_number_descriptions(room: Healthbox3Room) -> list[HealthboxBoostSettingDescription]:
+    """Both boost-setting numbers apply to every room unconditionally."""
+    return [BOOST_LEVEL_DESCRIPTION, BOOST_TIMEOUT_DESCRIPTION]
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: HealthboxConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Healthbox boost-setting numbers, adding new ones as rooms appear."""
-    coordinator = entry.runtime_data
-    known_room_ids: set[int] = set()
-
-    @callback
-    def _add_new_entities() -> None:
-        new_entities: list[HealthboxRoomBoostNumber] = []
-
-        for room in coordinator.api.rooms:
-            if room.room_id not in known_room_ids:
-                known_room_ids.add(room.room_id)
-                new_entities.append(
-                    HealthboxRoomBoostNumber(coordinator, BOOST_LEVEL_DESCRIPTION, room)
-                )
-                new_entities.append(
-                    HealthboxRoomBoostNumber(coordinator, BOOST_TIMEOUT_DESCRIPTION, room)
-                )
-
-        if new_entities:
-            LOGGER.debug(
-                "Adding %s new Healthbox boost-setting number(s): %s",
-                len(new_entities),
-                [e.entity_description.key for e in new_entities],
-            )
-            async_add_entities(new_entities)
-
-    _add_new_entities()
-    entry.async_on_unload(coordinator.async_add_listener(_add_new_entities))
+    async_setup_room_entities(
+        entry,
+        async_add_entities,
+        _room_number_descriptions,
+        HealthboxRoomBoostNumber,
+        "boost-setting number(s)",
+    )
 
 
 class HealthboxRoomBoostNumber(HealthboxRoomEntity, RestoreNumber):
